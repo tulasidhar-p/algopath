@@ -1,13 +1,10 @@
-import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from dotenv import load_dotenv
+from app.config.settings import settings
 
-load_dotenv()
-
-# Default to SQLite local database for development
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./algopath.db")
+# Load database configuration
+DATABASE_URL = settings.DATABASE_URL
 
 connect_args = {}
 if DATABASE_URL.startswith("sqlite"):
@@ -23,8 +20,14 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 def get_db():
+    """Database session dependency generator.
+
+    Yields:
+        Session: SQLAlchemy database session.
+    """
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+

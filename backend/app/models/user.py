@@ -10,9 +10,10 @@ class User(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)
     email = Column(String(150), unique=True, nullable=False)
-    password_hash = Column(String(255), nullable=False)
+    hashed_password = Column(String(255), nullable=False)
     is_admin = Column(Boolean, default=False, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     streak_count = Column(Integer, default=0, nullable=False)
     last_active = Column(Date, nullable=True)
 

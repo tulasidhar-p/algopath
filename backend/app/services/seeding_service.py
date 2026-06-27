@@ -212,7 +212,7 @@ def seed_database(db: Session, seed_dir_path: str = None):
         admin = User(
             name="AlgoPath Admin",
             email="admin@algopath.com",
-            password_hash=get_password_hash("AdminPassword123!"),
+            hashed_password=get_password_hash("AdminPassword123!"),
             is_admin=True,
             streak_count=0
         )

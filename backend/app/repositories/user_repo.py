@@ -8,11 +8,22 @@ def get_user_by_email(db: Session, email: str) -> User:
 def get_user_by_id(db: Session, user_id: int) -> User:
     return db.query(User).filter(User.id == user_id).first()
 
-def create_user(db: Session, name: str, email: str, password_hash: str) -> User:
+def create_user(db: Session, name: str, email: str, hashed_password: str) -> User:
+    """Create a new user record in the database.
+
+    Args:
+        db (Session): SQLAlchemy database session.
+        name (str): Display name of the user.
+        email (str): Unique email address of the user.
+        hashed_password (str): Encrypted password string.
+
+    Returns:
+        User: The newly created User model instance.
+    """
     user = User(
         name=name,
         email=email,
-        password_hash=password_hash,
+        hashed_password=hashed_password,
         streak_count=0
     )
     db.add(user)
