@@ -1,0 +1,46 @@
+{
+  "name": "Queue",
+  "slug": "queue",
+  "description": "Deploy First-In-First-Out structures, sequential processing pools, and multi-stack structures.",
+  "order_index": 5,
+  "icon": "Shuffle",
+  "unlock_percentage": 0.3,
+  "learning_objectives": [
+    "Manage FIFO ordering constraints for element pools",
+    "Adapt stack primitives to simulate queue behaviors"
+  ],
+  "prerequisites": ["stack"],
+  "patterns": [
+    {
+      "name": "Queue Operations",
+      "slug": "queue-operations",
+      "description": "Apply standard FIFO processing patterns using double stack caches.",
+      "order_index": 1,
+      "concepts": [
+        {
+          "name": "Queue Simulation using Stacks",
+          "slug": "queue-simulation-using-stacks",
+          "theory_markdown": "# Queue Simulation using Stacks\n\nQueues operate under First-In-First-Out, while stacks are Last-In-First-Out. We can implement a queue using two stacks.\n\n### The Core Idea\n\n- Stack 1 (`input`): Holds new elements pushed onto the queue.\n- Stack 2 (`output`): Used for pop/peek operations. If it's empty, pop everything from `input` and push to `output` to reverse the order.\n",
+          "learning_objectives": [
+            "Use two stacks to reverse LIFO ordering to FIFO",
+            "Evaluate amortized time complexity of queue operations"
+          ],
+          "order_index": 1,
+          "questions": [
+            {
+              "title": "Implement Queue using Stacks",
+              "difficulty": "Easy",
+              "source": "LeetCode",
+              "url": "https://leetcode.com/problems/implement-queue-using-stacks/",
+              "estimated_solve_time": 20,
+              "is_important": true,
+              "order_index": 1,
+              "tags": ["Stack", "Design", "Queue"],
+              "companies": ["Amazon", "Microsoft", "Goldman Sachs"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

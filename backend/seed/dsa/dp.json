@@ -1,0 +1,46 @@
+{
+  "name": "Dynamic Programming",
+  "slug": "dp",
+  "description": "Optimize recursion with overlapping subproblems, memoization, and tabular transitions.",
+  "order_index": 8,
+  "icon": "TrendingUp",
+  "unlock_percentage": 0.3,
+  "learning_objectives": [
+    "Identify overlapping subproblems in recursive flows",
+    "Memoize results using lookup tables to achieve polynomial time complexities"
+  ],
+  "prerequisites": ["graphs"],
+  "patterns": [
+    {
+      "name": "1D DP",
+      "slug": "1d-dp",
+      "description": "Store results of subproblems in a single dimension cache to compute values linear sequentially.",
+      "order_index": 1,
+      "concepts": [
+        {
+          "name": "Fibonacci Number / Stair Climbing Transitions",
+          "slug": "fibonacci-number-stair-climbing-transitions",
+          "theory_markdown": "# Climbing Stairs\n\nClimbing Stairs can be modeled as `dp[i] = dp[i-1] + dp[i-2]`, as to reach step `i`, you must come from either step `i-1` or step `i-2`.\n\n### The Tabulation Approach\n\n- Define `dp` table.\n- Base cases: `dp[1] = 1`, `dp[2] = 2`.\n- Transition: `dp[i] = dp[i-1] + dp[i-2]` (for `i >= 3`).\n",
+          "learning_objectives": [
+            "Establish optimal substructure and base cases",
+            "Optimize dynamic space using sliding variable indices"
+          ],
+          "order_index": 1,
+          "questions": [
+            {
+              "title": "Climbing Stairs",
+              "difficulty": "Easy",
+              "source": "LeetCode",
+              "url": "https://leetcode.com/problems/climbing-stairs/",
+              "estimated_solve_time": 15,
+              "is_important": true,
+              "order_index": 1,
+              "tags": ["Math", "Dynamic Programming", "Memoization"],
+              "companies": ["Amazon", "Google", "Microsoft", "Meta"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

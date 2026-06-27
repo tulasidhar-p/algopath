@@ -1,0 +1,57 @@
+{
+  "name": "Trees",
+  "slug": "trees",
+  "description": "Traverse hierarchical node structures, validate invariants, and find node depths.",
+  "order_index": 6,
+  "icon": "GitBranch",
+  "unlock_percentage": 0.3,
+  "learning_objectives": [
+    "Deconstruct tree shapes using recursive Depth-First Search methods",
+    "Validate binary search tree order invariants on parent-child pairs"
+  ],
+  "prerequisites": ["linked-list"],
+  "patterns": [
+    {
+      "name": "DFS Traversal",
+      "slug": "dfs-traversal",
+      "description": "Visit tree branches deeply using recursion stacks or helper queues before evaluating neighbors.",
+      "order_index": 1,
+      "concepts": [
+        {
+          "name": "Recursive Node Visits",
+          "slug": "recursive-node-visits",
+          "theory_markdown": "# Recursive Node Visits\n\nDepth-First Search (DFS) traverses a tree by traversing a child branch as deeply as possible before backtracking.\n\n### The Core Idea\n\n- Pre-order (Node, Left, Right)\n- In-order (Left, Node, Right)\n- Post-order (Left, Right, Node)\n",
+          "learning_objectives": [
+            "Implement recursive pre-, in-, and post-order tree walks",
+            "Evaluate tree height and maximum path metrics"
+          ],
+          "order_index": 1,
+          "questions": [
+            {
+              "title": "Maximum Depth of Binary Tree",
+              "difficulty": "Easy",
+              "source": "LeetCode",
+              "url": "https://leetcode.com/problems/maximum-depth-of-binary-tree/",
+              "estimated_solve_time": 15,
+              "is_important": true,
+              "order_index": 1,
+              "tags": ["Tree", "Depth-First Search", "Binary Tree"],
+              "companies": ["Google", "Amazon", "LinkedIn", "Microsoft"]
+            },
+            {
+              "title": "Invert Binary Tree",
+              "difficulty": "Easy",
+              "source": "LeetCode",
+              "url": "https://leetcode.com/problems/invert-binary-tree/",
+              "estimated_solve_time": 15,
+              "is_important": true,
+              "order_index": 2,
+              "tags": ["Tree", "Breadth-First Search", "Binary Tree"],
+              "companies": ["Google", "Amazon", "Apple"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "name": "Strings",
+  "slug": "strings",
+  "description": "Master character array manipulations, substring searches, and window sliding optimizations.",
+  "order_index": 2,
+  "icon": "Hash",
+  "unlock_percentage": 0.3,
+  "learning_objectives": [
+    "Understand character ascii mappings and frequency counting structures",
+    "Deploy sliding window techniques to evaluate substring properties in O(N) time"
+  ],
+  "prerequisites": ["arrays"],
+  "patterns": [
+    {
+      "name": "Sliding Window",
+      "slug": "sliding-window",
+      "description": "Maintain a dynamic window of elements to optimize subarray/substring checks.",
+      "order_index": 1,
+      "concepts": [
+        {
+          "name": "Substring Sub-segment Scanning",
+          "slug": "substring-sub-segment-scanning",
+          "theory_markdown": "# Substring Sub-segment Scanning\n\nSliding Window is a technique that converts nested loop solutions `O(N^2)` into linear search sweeps `O(N)`.\n\n### The Core Idea\n\nKeep `left` and `right` boundary markers. Expand `right` to include elements, and shrink `left` when window invariants are violated (e.g. repeating characters).\n",
+          "learning_objectives": [
+            "Implement variable length sliding windows using two pointers",
+            "Leverage hash-sets or frequency tables to validate uniqueness constraints"
+          ],
+          "order_index": 1,
+          "questions": [
+            {
+              "title": "Longest Substring Without Repeating Characters",
+              "difficulty": "Medium",
+              "source": "LeetCode",
+              "url": "https://leetcode.com/problems/longest-substring-without-repeating-characters/",
+              "estimated_solve_time": 30,
+              "is_important": true,
+              "order_index": 1,
+              "tags": ["Hash Table", "String", "Sliding Window"],
+              "companies": ["Amazon", "Google", "Microsoft", "Meta"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

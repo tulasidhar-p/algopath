@@ -1,0 +1,46 @@
+{
+  "name": "Graphs",
+  "slug": "graphs",
+  "description": "Master graph representations, BFS/DFS traversals, and connectivity components.",
+  "order_index": 7,
+  "icon": "Share2",
+  "unlock_percentage": 0.3,
+  "learning_objectives": [
+    "Navigate multi-linked networks using search matrices",
+    "Identify disconnected islands or clusters inside a grid using graph traversals"
+  ],
+  "prerequisites": ["trees"],
+  "patterns": [
+    {
+      "name": "Graph Traversal",
+      "slug": "graph-traversal",
+      "description": "Visit connected vertices recursively using adjacency list parameters.",
+      "order_index": 1,
+      "concepts": [
+        {
+          "name": "BFS / DFS on Graphs",
+          "slug": "bfs-dfs-on-graphs",
+          "theory_markdown": "# BFS / DFS on Graphs\n\nGraph traversal allows traversing nodes that can be connected in cycle structures. Unlike trees, we must keep track of a `visited` set to avoid infinite loops.\n\n### The Island Counting Idea\n\nTreat grid as a graph. When '1' is encountered, trigger DFS to visit all adjacent '1's and flip them to '0's (or add to visited) to sink the island. Increment island count.\n",
+          "learning_objectives": [
+            "Maintain visited sets during vertex scanning",
+            "Apply search updates to grid matrix parameters"
+          ],
+          "order_index": 1,
+          "questions": [
+            {
+              "title": "Number of Islands",
+              "difficulty": "Medium",
+              "source": "LeetCode",
+              "url": "https://leetcode.com/problems/number-of-islands/",
+              "estimated_solve_time": 30,
+              "is_important": true,
+              "order_index": 1,
+              "tags": ["Array", "Depth-First Search", "Breadth-First Search", "Union Find", "Matrix"],
+              "companies": ["Amazon", "Google", "Microsoft", "Meta"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "name": "Linked List",
+  "slug": "linked-list",
+  "description": "Implement non-contiguous node chains, pointer updates, and slow/fast runner checks.",
+  "order_index": 3,
+  "icon": "Link",
+  "unlock_percentage": 0.3,
+  "learning_objectives": [
+    "Navigate sequential node links using pointer assignments",
+    "Identify cycle loops using tortoise and hare runner pointer alignments"
+  ],
+  "prerequisites": ["arrays"],
+  "patterns": [
+    {
+      "name": "Fast and Slow Pointers",
+      "slug": "fast-and-slow-pointers",
+      "description": "Use two pointers moving at different speeds to detect cycles or find list midpoints.",
+      "order_index": 1,
+      "concepts": [
+        {
+          "name": "Linked List Cycle Detection",
+          "slug": "linked-list-cycle-detection",
+          "theory_markdown": "# Linked List Cycle Detection\n\nCycle detection is solved using Floyd's Tortoise and Hare algorithm.\n\n### The Core Idea\n\nIf a cycle exists, a fast pointer (moving 2 steps at a time) will eventually catch up and meet the slow pointer (moving 1 step at a time).\n",
+          "learning_objectives": [
+            "Explain why the tortoise and hare are guaranteed to meet in a cycle",
+            "Trace pointer movements in loop nodes"
+          ],
+          "order_index": 1,
+          "questions": [
+            {
+              "title": "Linked List Cycle",
+              "difficulty": "Easy",
+              "source": "LeetCode",
+              "url": "https://leetcode.com/problems/linked-list-cycle/",
+              "estimated_solve_time": 20,
+              "is_important": true,
+              "order_index": 1,
+              "tags": ["Linked List", "Two Pointers"],
+              "companies": ["Amazon", "Google", "Microsoft"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

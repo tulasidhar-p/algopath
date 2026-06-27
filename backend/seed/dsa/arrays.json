@@ -1,0 +1,58 @@
+{
+  "name": "Arrays",
+  "slug": "arrays",
+  "description": "Master linear array structures, sub-segments checks, prefix sums, and element caching.",
+  "order_index": 1,
+  "icon": "Grid",
+  "unlock_percentage": 0.3,
+  "learning_objectives": [
+    "Understand linear memory indexing and contiguous allocation layouts",
+    "Evaluate range sum updates using Prefix Sum arrays in O(1) time",
+    "Learn boundary shifts and window index tracking under search constraints"
+  ],
+  "prerequisites": [],
+  "patterns": [
+    {
+      "name": "Prefix Sum",
+      "slug": "prefix-sum",
+      "description": "Precompute cumulative sums to compute dynamic range sums in O(1) time.",
+      "order_index": 1,
+      "concepts": [
+        {
+          "name": "1D Prefix Sum Basics",
+          "slug": "1d-prefix-sum-basics",
+          "theory_markdown": "# 1D Prefix Sum Basics\n\nThe prefix sum pattern is a powerful optimization technique designed to compute cumulative indicators across sub-intervals of an array in constant time `O(1)`.\n\n### The Core Idea\n\nFor a given array `nums` of size `N`, we construct an auxiliary array `prefix` where each element at index `i` stores the sum of all elements up to index `i`.\n\n```text\nprefix[i] = nums[0] + nums[1] + ... + nums[i]\n```\n\nOnce computed, range sum `sum(L, R)` is:\n`prefix[R] - prefix[L-1]` (if L > 0).\n",
+          "learning_objectives": [
+            "Construct prefix sum arrays in O(N) time complexity",
+            "Understand boundary checks for range index queries"
+          ],
+          "order_index": 1,
+          "questions": [
+            {
+              "title": "Range Sum Query - Immutable",
+              "difficulty": "Easy",
+              "source": "LeetCode",
+              "url": "https://leetcode.com/problems/range-sum-query-immutable/",
+              "estimated_solve_time": 15,
+              "is_important": true,
+              "order_index": 1,
+              "tags": ["Array", "Design", "Prefix Sum"],
+              "companies": ["Google", "Amazon", "Meta"]
+            },
+            {
+              "title": "Subarray Sum Equals K",
+              "difficulty": "Medium",
+              "source": "LeetCode",
+              "url": "https://leetcode.com/problems/subarray-sum-equals-k/",
+              "estimated_solve_time": 30,
+              "is_important": true,
+              "order_index": 2,
+              "tags": ["Array", "Hash Table", "Prefix Sum"],
+              "companies": ["Google", "Meta", "Amazon", "Microsoft"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

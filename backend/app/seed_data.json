@@ -1,0 +1,189 @@
+{
+  "domains": [
+    {
+      "name": "Data Structures & Algorithms",
+      "slug": "dsa",
+      "description": "Master coding patterns, complexity analysis, and clean implementation from Arrays to Dynamic Programming.",
+      "order_index": 1,
+      "topics": [
+        {
+          "name": "Arrays",
+          "slug": "arrays",
+          "description": "Master linear array structures, sub-segments checks, prefix sums, and element caching.",
+          "order_index": 1,
+          "icon": "Grid",
+          "unlock_percentage": 0.3,
+          "learning_objectives": [
+            "Understand linear memory indexing and contiguous allocation layouts",
+            "Evaluate range sum updates using Prefix Sum arrays in O(1) time",
+            "Learn boundary shifts and window index tracking under search constraints"
+          ],
+          "prerequisites": [],
+          "patterns": [
+            {
+              "name": "Prefix Sum",
+              "slug": "prefix-sum",
+              "description": "Precompute cumulative sums to compute dynamic range sums in O(1) time.",
+              "order_index": 1,
+              "concepts": [
+                {
+                  "name": "1D Prefix Sum Basics",
+                  "slug": "1d-prefix-sum-basics",
+                  "theory_markdown": "# 1D Prefix Sum Basics\n\nThe prefix sum pattern is a powerful optimization technique designed to compute cumulative indicators across sub-intervals of an array in constant time `O(1)`.\n\n### The Core Idea\n\nFor a given array `nums` of size `N`, we construct an auxiliary array `prefix` of size `N` (or `N+1`) where each element at index `i` stores the sum of all elements from the start of the array up to index `i`:\n\n```text\nprefix[i] = nums[0] + nums[1] + ... + nums[i]\n```\n\nMathematically:\n- `prefix[0] = nums[0]`\n- `prefix[i] = prefix[i-1] + nums[i]` (for `i > 0`)\n\n### Range Queries\n\nOnce precomputed, we can answer any sum query for subarray `nums[L...R]` in `O(1)` time:\n\n```text\nsum(L, R) = prefix[R] - prefix[L - 1]   (if L > 0)\nsum(0, R) = prefix[R]\n```\n\nIf we use a `1-based` prefix sum array (size `N+1`), the range query formula simplifies universally to:\n```text\nsum(L, R) = prefix[R + 1] - prefix[L]\n```",
+                  "learning_objectives": [
+                    "Construct prefix sum arrays in O(N) time complexity",
+                    "Understand boundary checks for range index queries",
+                    "Implement hash-map cache extensions for subsegment counts matching specific targets"
+                  ],
+                  "order_index": 1,
+                  "questions": [
+                    {
+                      "title": "Range Sum Query - Immutable",
+                      "difficulty": "Easy",
+                      "source": "LeetCode",
+                      "url": "https://leetcode.com/problems/range-sum-query-immutable/",
+                      "estimated_solve_time": 15,
+                      "is_important": true,
+                      "order_index": 1,
+                      "tags": ["Array", "Design", "Prefix Sum"],
+                      "companies": ["Google", "Amazon", "Meta"]
+                    },
+                    {
+                      "title": "Subarray Sum Equals K",
+                      "difficulty": "Medium",
+                      "source": "LeetCode",
+                      "url": "https://leetcode.com/problems/subarray-sum-equals-k/",
+                      "estimated_solve_time": 30,
+                      "is_important": true,
+                      "order_index": 2,
+                      "tags": ["Array", "Hash Table", "Prefix Sum"],
+                      "companies": ["Google", "Meta", "Amazon", "Microsoft"]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Two Pointers",
+          "slug": "two-pointers",
+          "description": "Optimize search bounds by advancing indicators from opposite ends or at variable speeds.",
+          "order_index": 2,
+          "icon": "ArrowLeftRight",
+          "unlock_percentage": 0.3,
+          "learning_objectives": [
+            "Learn opposite-direction pointers to optimize nested search bounds",
+            "Master fast & slow runner index tracking to evaluate linked loop chains",
+            "Eliminate redundant traversal work from sorted search arrays"
+          ],
+          "prerequisites": ["arrays"],
+          "patterns": [
+            {
+              "name": "Opposite Directions",
+              "slug": "opposite-directions",
+              "description": "Initialize pointers at opposite ends of a sorted array and step inward to find matching pairs.",
+              "order_index": 1,
+              "concepts": [
+                {
+                  "name": "Pair Target Sum Matching",
+                  "slug": "pair-target-sum-matching",
+                  "theory_markdown": "# Pair Target Sum Matching\n\nWhen searching for a pair of values in a **sorted** array that satisfies a specific condition (e.g., matching a target sum), a nested loop results in a slow `O(N^2)` check. The two-pointer technique solves this in `O(N)` linear time.\n\n### Algorithm\n\n1. Initialize `left = 0` (pointing to the smallest element) and `right = N - 1` (pointing to the largest element).\n2. Calculate the current sum: `current_sum = nums[left] + nums[right]`.\n3. Compare `current_sum` with `target`:\n   - If `current_sum == target`: Match found! Return indices.\n   - If `current_sum < target`: We need a larger sum. Since the array is sorted, increment `left` to increase the sum.\n   - If `current_sum > target`: We need a smaller sum. Decrement `right` to reduce the sum.\n4. Repeat until `left >= right`.",
+                  "learning_objectives": [
+                    "Evaluate search space boundaries using opposite pointer indexing",
+                    "Handle sorting prerequisites prior to launching pointer checks",
+                    "Understand how to extend pair search checks to triplets and quadruplets"
+                  ],
+                  "order_index": 1,
+                  "questions": [
+                    {
+                      "title": "Two Sum II - Input Array Is Sorted",
+                      "difficulty": "Easy",
+                      "source": "LeetCode",
+                      "url": "https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/",
+                      "estimated_solve_time": 15,
+                      "is_important": true,
+                      "order_index": 1,
+                      "tags": ["Array", "Two Pointers", "Binary Search"],
+                      "companies": ["Amazon", "Google", "Microsoft"]
+                    },
+                    {
+                      "title": "3Sum",
+                      "difficulty": "Medium",
+                      "source": "LeetCode",
+                      "url": "https://leetcode.com/problems/3sum/",
+                      "estimated_solve_time": 35,
+                      "is_important": true,
+                      "order_index": 2,
+                      "tags": ["Array", "Two Pointers", "Sorting"],
+                      "companies": ["Meta", "Amazon", "Microsoft", "Google"]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Trees",
+          "slug": "trees",
+          "description": "Traverse hierarchical node structures, validate invariants, and find node depths.",
+          "order_index": 3,
+          "icon": "GitBranch",
+          "unlock_percentage": 0.3,
+          "learning_objectives": [
+            "Deconstruct tree shapes using recursive Depth-First Search methods",
+            "Validate binary search tree order invariants on parent-child pairs",
+            "Compute optimal path sums across branch selections"
+          ],
+          "prerequisites": ["arrays"],
+          "patterns": [
+            {
+              "name": "DFS Traversal",
+              "slug": "dfs-traversal",
+              "description": "Visit tree branches deeply using recursion stacks or helper queues before evaluating neighbors.",
+              "order_index": 1,
+              "concepts": [
+                {
+                  "name": "Recursive Node Visits",
+                  "slug": "recursive-node-visits",
+                  "theory_markdown": "# Recursive Node Visits\n\nDepth-First Search (DFS) traverses a tree by traversing a child branch as deeply as possible before backtracking to inspect siblings. It leverages the recursive nature of trees: every node is itself the root of a smaller subtree.\n\n### The Three DFS Traversals\n\nBased on when the current node is visited relative to its children:\n\n1. **Pre-order** (Node, Left, Right): Useful for cloning or serializing structures.\n2. **In-order** (Left, Node, Right): Visits a BST in sorted ascending order.\n3. **Post-order** (Left, Right, Node): Useful for computations where child answers are needed first (like calculating tree height or bottom-up updates).",
+                  "learning_objectives": [
+                    "Implement pre-order, in-order, and post-order recursive visits",
+                    "Determine tree height and maximum path metrics",
+                    "Understand tree shape conversion operations"
+                  ],
+                  "order_index": 1,
+                  "questions": [
+                    {
+                      "title": "Maximum Depth of Binary Tree",
+                      "difficulty": "Easy",
+                      "source": "LeetCode",
+                      "url": "https://leetcode.com/problems/maximum-depth-of-binary-tree/",
+                      "estimated_solve_time": 15,
+                      "is_important": true,
+                      "order_index": 1,
+                      "tags": ["Tree", "Depth-First Search", "Binary Tree"],
+                      "companies": ["Google", "Amazon", "LinkedIn", "Microsoft"]
+                    },
+                    {
+                      "title": "Invert Binary Tree",
+                      "difficulty": "Easy",
+                      "source": "LeetCode",
+                      "url": "https://leetcode.com/problems/invert-binary-tree/",
+                      "estimated_solve_time": 15,
+                      "is_important": true,
+                      "order_index": 2,
+                      "tags": ["Tree", "Breadth-First Search", "Binary Tree"],
+                      "companies": ["Google", "Amazon", "Apple"]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

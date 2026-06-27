@@ -1,0 +1,46 @@
+{
+  "name": "Stack",
+  "slug": "stack",
+  "description": "Deploy Last-In-First-Out data structures, parentheses validation, and monotonic stacks.",
+  "order_index": 4,
+  "icon": "Layers",
+  "unlock_percentage": 0.3,
+  "learning_objectives": [
+    "Manage LIFO order constraints for tracking matching subsets",
+    "Construct monotonic stacks to retrieve subsequent values under linear bounds"
+  ],
+  "prerequisites": ["arrays"],
+  "patterns": [
+    {
+      "name": "Monotonic Stack",
+      "slug": "monotonic-stack",
+      "description": "Keep stack elements sorted in increasing or decreasing order to solve range/limit checks.",
+      "order_index": 1,
+      "concepts": [
+        {
+          "name": "Next Greater Element",
+          "slug": "next-greater-element",
+          "theory_markdown": "# Next Greater Element\n\nA monotonic stack is used to find the first greater element to the right of each element in an array in `O(N)` time.\n\n### The Core Idea\n\nIterate through the array. Pop elements from the stack that are smaller than the current element. For those popped elements, the current element is their 'next greater element'. Then push the current element onto the stack.\n",
+          "learning_objectives": [
+            "Maintain increasing or decreasing order constraints in a stack structure",
+            "Solve next greater element checks in linear time complexity"
+          ],
+          "order_index": 1,
+          "questions": [
+            {
+              "title": "Next Greater Element I",
+              "difficulty": "Easy",
+              "source": "LeetCode",
+              "url": "https://leetcode.com/problems/next-greater-element-i/",
+              "estimated_solve_time": 20,
+              "is_important": true,
+              "order_index": 1,
+              "tags": ["Array", "Hash Table", "Stack", "Monotonic Stack"],
+              "companies": ["Amazon", "Google"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
