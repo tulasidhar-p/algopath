@@ -1,10 +1,11 @@
-# AlgoPath - Multi-Domain Study Planner Platform
+# 🚀 AlgoPath
 
-This is a stabilization release (Sprint 2.1) ensuring correct local environment setup, runtime imports, frontend dependency resolution, and centralized API communication.
+### AI-Powered Personalized Learning Platform
+AlgoPath is an AI-powered learning platform that helps students master Data Structures & Algorithms, Web Development, and Data Analysis through personalized learning paths, interactive visualizations, coding practice, and progress tracking.
 
 ---
 
-## Startup Instructions
+⚡ Quick Start
 
 ### 1. Backend Startup
 
