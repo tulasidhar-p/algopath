@@ -1,0 +1,69 @@
+# Sprint 3.1 – Phase 2: Security Layer Walkthrough
+
+This walkthrough documents the implementation and verification of the Security Layer for the AlgoPath application. We successfully created stateless password hashing and JWT utility services under `backend/app/services/` and wrote a complete unit test suite validating their functionality and error handling.
+
+---
+
+## Changes Implemented
+
+### 1. Dependencies
+
+* **[requirements.txt](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/requirements.txt)**: Added `bcrypt>=4.0.0` explicitly as a production dependency to avoid passlib version conflicts.
+* **[requirements-dev.txt](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/requirements-dev.txt)**: Created new file and added `pytest>=8.0.0` as a development/test tool dependency.
+
+### 2. Core Security Services
+
+* **[password_service.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/app/services/password_service.py)**:
+  * Implemented a stateless helper class `PasswordService`.
+  * Added `hash_password(password: str) -> str` using `bcrypt` (independent of database or framework).
+  * Added `verify_password(password: str, hashed_password: str) -> bool` with robust exception protection for invalid hash formats.
+* **[jwt_service.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/app/services/jwt_service.py)**:
+  * Implemented class `JWTService` reading configuration from settings.
+  * Added custom exception handlers: `JWTServiceError`, `TokenExpiredError`, `TokenInvalidError`.
+  * Added `create_access_token(subject: str) -> str` which formats payloads strictly with `sub` and `exp` claims. Uses timezone-aware UTC datetime computation.
+  * Added `verify_access_token(token: str) -> dict` doing signature/expiration checks and mapping exceptions to `TokenExpiredError` / `TokenInvalidError`.
+  * Added `decode_access_token(token: str) -> dict` allowing decryption of expired tokens (skipping expiration checks) to read claims while maintaining signature validation.
+
+### 3. Unit Test Suite
+
+* **[test_password_service.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/tests/test_password_service.py)**:
+  * Unit tests validating:
+    * Password hashing format (starts with `$2`).
+    * Correct verification.
+    * Mismatched password rejection.
+    * Graceful rejection of empty/malformed hashes.
+* **[test_jwt_service.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/tests/test_jwt_service.py)**:
+  * Unit tests validating:
+    * Token structure containing only the `sub` and `exp` claims.
+    * Successful verification of valid tokens.
+    * Expired tokens raise `TokenExpiredError`.
+    * Tampered signature tokens raise `TokenInvalidError`.
+    * Malformed strings raise `TokenInvalidError`.
+    * Verification bypass for expired tokens under `decode_access_token`.
+
+---
+
+## Verification & Validation Results
+
+The test suite was run inside the `backend` virtual environment:
+
+```bash
+.\venv\Scripts\python -m pytest tests
+```
+
+### Test Suite Output
+
+```text
+============================= test session starts =============================
+platform win32 -- Python 3.13.7, pytest-9.1.1, pluggy-1.6.0
+rootdir: D:\Projects\Antigravity\project 1\project 1.1\backend
+plugins: anyio-4.14.1
+collected 10 items
+
+tests\test_jwt_service.py ......                                         [ 60%]
+tests\test_password_service.py ....                                      [100%]
+
+============================= 10 passed in 1.55s ==============================
+```
+
+All 10 test scenarios passed cleanly with zero warnings or failures.

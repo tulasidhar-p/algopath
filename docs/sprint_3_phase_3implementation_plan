@@ -1,0 +1,177 @@
+# Sprint 3.1 – Phase 3: Authentication Business Logic Implementation Plan
+
+This implementation plan details the redesign and implementation of the **Authentication Business Logic** layer. The core service `backend/app/services/auth_service.py` will be rebuilt as a clean, stateless orchestration service completely decoupled from FastAPI dependencies and SQLAlchemy model leakage.
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> **FastAPI Dependency Decoupling & Router Refactoring**
+> In order to satisfy the requirement: *"Keep the service independent of FastAPI (`Request`, `Depends`, `HTTPException`, etc.)"*, we must extract:
+> - `get_current_user`
+> - `get_admin_user`
+> 
+> Out of [auth_service.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/app/services/auth_service.py) and move them into a new router-level dependencies module: `backend/app/dependencies.py`.
+>
+> We will then update [curriculum.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/app/routes/curriculum.py) and any other route modules to import these dependency injection helpers from the new location. This will prevent routing failures while cleanly isolating our core business logic.
+
+---
+
+## Open Questions
+
+> [!NOTE]
+> **Q1: Seeding Topics for Registration Tests**
+> User registration logic (`register_user`) calls `user_repo.initialize_user_topic_progress(db, user_id)`. To run thorough tests, our in-memory SQLite database needs some seeded topics.
+>
+> *Recommendation*: We will add a simple topic seeding helper fixture in our pytest config (`conftest.py`) so that the registration workflow can be tested with actual topic unlocking logic.
+
+---
+
+## Proposed Changes
+
+### 1. Centralized Router Dependencies
+
+#### [NEW] [dependencies.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/app/dependencies.py)
+* **Goal**: Hold all FastAPI-dependent route helpers (such as OAuth2 schemes and current user dependencies).
+* **Implementation Details**:
+  * Define `oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)`.
+  * Move `get_current_user(token, db)` and `get_admin_user(current_user)` from the service layer to this module.
+  * Update them to use the new custom JWT exceptions: catch `TokenExpiredError` or `TokenInvalidError` from `JWTService` and convert them into FastAPI `HTTPException(status_code=401, detail="Could not validate credentials")`.
+
+---
+
+### 2. Core Service Refactoring
+
+#### [MODIFY] [auth_service.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/app/services/auth_service.py)
+* **Goal**: Completely refit this file to be the orchestration service for user registration and login.
+* **Exceptions Defined**:
+  ```python
+  class AuthenticationError(Exception):
+      """Base authentication error."""
+      pass
+
+  class UserAlreadyExistsError(AuthenticationError):
+      """Raised when duplicate email is registered."""
+      pass
+
+  class InvalidCredentialsError(AuthenticationError):
+      """Raised when login fails due to incorrect credentials."""
+      pass
+
+  class UserNotFoundError(AuthenticationError):
+      """Raised when user lookup fails."""
+      pass
+  ```
+* **Required Public Methods**:
+  ```python
+  from sqlalchemy.orm import Session
+  from app.schemas.auth import RegisterRequest, LoginRequest, UserResponse, TokenResponse
+
+  class AuthService:
+      @staticmethod
+      def register_user(db: Session, register_data: RegisterRequest) -> UserResponse:
+          """Register a new user.
+          
+          Workflow:
+          1. Normalize email (lowercase and strip whitespace).
+          2. Check duplicate email via user_repo; raise UserAlreadyExistsError if duplicate.
+          3. Hash password using PasswordService.
+          4. Create user record inside a try/except block; execute rollback on DB failure.
+          5. Initialize user topic progress.
+          6. Return serialized UserResponse.
+          """
+          ...
+
+      @staticmethod
+      def login_user(db: Session, login_data: LoginRequest) -> TokenResponse:
+          """Authenticate a user and generate a JWT.
+          
+          Workflow:
+          1. Retrieve user by email.
+          2. Verify password with PasswordService.
+          3. If user not found OR password invalid, raise InvalidCredentialsError (prevent user enumeration).
+          4. Generate JWT using JWTService.
+          5. Return TokenResponse.
+          """
+          ...
+
+      @staticmethod
+      def get_user_by_email(db: Session, email: str) -> UserResponse:
+          """Retrieve and sanitize user details by email."""
+          ...
+
+      @staticmethod
+      def get_user_by_id(db: Session, user_id: int) -> UserResponse:
+          """Retrieve and sanitize user details by user ID."""
+          ...
+  ```
+
+---
+
+### 3. API Routers Integration
+
+#### [MODIFY] [curriculum.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/app/routes/curriculum.py)
+* **Goal**: Update imports to point to `app.dependencies` for route protection.
+* **Change**:
+  ```diff
+- from app.services import auth_service, roadmap_service
++ from app.dependencies import get_current_user
++ from app.services import roadmap_service
+  ```
+  Update path functions to use `current_user = Depends(get_current_user)` directly.
+
+---
+
+### 4. Test Suite
+
+#### [NEW] [conftest.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/tests/conftest.py)
+* Provides reusable fixtures for testing:
+  * `db_session`: In-memory SQLite database setup, creation of tables (by importing `app.models`), yielding session, and clean teardown.
+  * `seeded_topics`: Seed a couple of mockup topics to ensure progress initialization logic executes fully.
+
+#### [NEW] [test_auth_service.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/tests/test_auth_service.py)
+* Tests cases for `AuthService`:
+  * **Registration**:
+    * Success registration (returns `UserResponse`, does not leak password, creates user, initializes progress).
+    * Re-registration of same email (raises `UserAlreadyExistsError`).
+    * Database failure triggers rollback.
+  * **Login**:
+    * Successful login (returns valid access token, type Bearer).
+    * Unknown email (raises `InvalidCredentialsError`).
+    * Incorrect password (raises `InvalidCredentialsError`).
+  * **Lookup**:
+    * Successful search by email / ID.
+    * Raises `UserNotFoundError` for non-existent users.
+
+---
+
+## Acceptance Criteria
+
+1. **Decoupled Service**: No FastAPI dependencies (`Depends`, `HTTPException`, `status`) in `AuthService`.
+2. **Transaction Rollback**: Any database integrity errors or exceptions during registration roll back the SQLAlchemy Session.
+3. **No Password Leak**: Neither `UserResponse` nor `TokenResponse` returns any hashed or plaintext passwords.
+4. **Secure Error Handling**: Identical generic `InvalidCredentialsError` raised for both non-existent users and incorrect passwords.
+5. **Clean API**: Custom exceptions inherit from `AuthenticationError`.
+6. **Passes All Tests**: All 10 existing tests + new authentication logic tests must pass with zero issues.
+
+---
+
+## Verification Plan
+
+### Automated Tests
+* Run unit tests:
+  ```bash
+  .\venv\Scripts\python -m pytest tests/
+  ```
+
+---
+
+## Migration Impact & Risks
+
+1. **Router Broken References**:
+   Updating `auth_service.py` removes `get_current_user` and `get_admin_user`.
+   *Mitigation*: We are migrating these to [dependencies.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/app/dependencies.py) and updating imports in [curriculum.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/app/routes/curriculum.py).
+2. **Transaction Scoping**:
+   If we rollback inside the service, the caller might try to commit a closed/failed session.
+   *Mitigation*: We will let the exceptions bubble up cleanly, so the router/caller knows the operation failed. Since routers use FastAPI's dependency injection (`get_db`), the database session lifecycle is managed per request, and failed commits are caught at the service layer.

@@ -17,7 +17,8 @@ from app.schemas.curriculum import (
     SolveRequest,
     BookmarkRequest
 )
-from app.services import auth_service, roadmap_service
+from app.dependencies import get_current_user
+from app.services import roadmap_service
 
 router = APIRouter(prefix="/api", tags=["Curriculum"])
 
@@ -38,7 +39,7 @@ def get_domain(slug: str, db: Session = Depends(get_db)):
 
 # 3. GET /api/domains/{slug}/roadmap
 @router.get("/domains/{slug}/roadmap", response_model=APIResponse[DomainRoadmapData])
-def get_domain_roadmap(slug: str, db: Session = Depends(get_db), current_user = Depends(auth_service.get_current_user)):
+def get_domain_roadmap(slug: str, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     roadmap = roadmap_service.get_domain_roadmap(db, slug, current_user.id)
     if not roadmap:
         raise HTTPException(status_code=404, detail="Domain not found")
@@ -46,7 +47,7 @@ def get_domain_roadmap(slug: str, db: Session = Depends(get_db), current_user = 
 
 # 4. GET /api/topics/{slug}
 @router.get("/topics/{slug}", response_model=APIResponse[TopicResponse])
-def get_topic(slug: str, db: Session = Depends(get_db), current_user = Depends(auth_service.get_current_user)):
+def get_topic(slug: str, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     topic = db.query(Topic).filter(Topic.slug == slug).first()
     if not topic:
         raise HTTPException(status_code=404, detail="Topic not found")
@@ -188,7 +189,7 @@ def get_topic(slug: str, db: Session = Depends(get_db), current_user = Depends(a
 
 # 5. GET /api/topics/{slug}/progress
 @router.get("/topics/{slug}/progress", response_model=APIResponse[TopicProgressDetail])
-def get_topic_progress(slug: str, db: Session = Depends(get_db), current_user = Depends(auth_service.get_current_user)):
+def get_topic_progress(slug: str, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     topic = db.query(Topic).filter(Topic.slug == slug).first()
     if not topic:
         raise HTTPException(status_code=404, detail="Topic not found")
@@ -214,7 +215,7 @@ def get_topic_progress(slug: str, db: Session = Depends(get_db), current_user = 
 
 # 6. GET /api/patterns/{slug}
 @router.get("/patterns/{slug}", response_model=APIResponse[PatternResponse])
-def get_pattern(slug: str, db: Session = Depends(get_db), current_user = Depends(auth_service.get_current_user)):
+def get_pattern(slug: str, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     pattern = db.query(Pattern).filter(Pattern.slug == slug).first()
     if not pattern:
         raise HTTPException(status_code=404, detail="Pattern not found")
@@ -308,7 +309,7 @@ def get_pattern(slug: str, db: Session = Depends(get_db), current_user = Depends
 
 # 7. GET /api/concepts/{slug}
 @router.get("/concepts/{slug}", response_model=APIResponse[ConceptResponse])
-def get_concept(slug: str, db: Session = Depends(get_db), current_user = Depends(auth_service.get_current_user)):
+def get_concept(slug: str, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     concept = db.query(Concept).filter(Concept.slug == slug).first()
     if not concept:
         raise HTTPException(status_code=404, detail="Concept not found")
@@ -378,7 +379,7 @@ def get_concept(slug: str, db: Session = Depends(get_db), current_user = Depends
 
 # 8. GET /api/questions
 @router.get("/questions", response_model=APIResponse[List[QuestionResponse]])
-def get_questions(db: Session = Depends(get_db), current_user = Depends(auth_service.get_current_user)):
+def get_questions(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     questions = db.query(Question).all()
     question_ids = [q.id for q in questions]
 
@@ -419,7 +420,7 @@ def get_questions(db: Session = Depends(get_db), current_user = Depends(auth_ser
 
 # 9. GET /api/questions/{id}
 @router.get("/questions/{id}", response_model=APIResponse[QuestionResponse])
-def get_question(id: int, db: Session = Depends(get_db), current_user = Depends(auth_service.get_current_user)):
+def get_question(id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     question = db.query(Question).filter(Question.id == id).first()
     if not question:
         raise HTTPException(status_code=404, detail="Question not found")
@@ -456,7 +457,7 @@ def get_question(id: int, db: Session = Depends(get_db), current_user = Depends(
 
 # 10. PATCH /api/questions/{id}/solve
 @router.patch("/questions/{id}/solve")
-def solve_question(id: int, req: SolveRequest, db: Session = Depends(get_db), current_user = Depends(auth_service.get_current_user)):
+def solve_question(id: int, req: SolveRequest, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     question = db.query(Question).filter(Question.id == id).first()
     if not question:
         raise HTTPException(status_code=404, detail="Question not found")
@@ -586,7 +587,7 @@ def solve_question(id: int, req: SolveRequest, db: Session = Depends(get_db), cu
 
 # 11. PATCH /api/questions/{id}/bookmark
 @router.patch("/questions/{id}/bookmark")
-def bookmark_question(id: int, req: BookmarkRequest, db: Session = Depends(get_db), current_user = Depends(auth_service.get_current_user)):
+def bookmark_question(id: int, req: BookmarkRequest, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     question = db.query(Question).filter(Question.id == id).first()
     if not question:
         raise HTTPException(status_code=404, detail="Question not found")

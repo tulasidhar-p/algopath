@@ -1,0 +1,180 @@
+# Sprint 3.1 – Phase 2: Security Layer Implementation Plan
+
+This implementation plan covers the design and delivery of the production-quality **Security Layer** for the AlgoPath application. It introduces two independent, stateless service classes for password security and JWT management under `backend/app/services/`.
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> **Existing `auth_service.py` Conflict**
+> There is an existing [auth_service.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/app/services/auth_service.py) in the codebase that implements simple hashing and token creation using standard module-level functions.
+>
+> In alignment with the requirements ("Do not implement login or registration. Do not access SQLAlchemy models. Do not implement authentication routes"), we will create the two new independent services:
+> - `PasswordService` in [password_service.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/app/services/password_service.py)
+> - `JWTService` in [jwt_service.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/app/services/jwt_service.py)
+>
+> These services will **not** initially replace the existing `auth_service.py` to prevent breaking other parts of the application. The migration of `auth_service.py` to use these new services is proposed as a follow-up step.
+
+---
+
+## Open Questions
+
+> [!NOTE]
+> **Q1: Decoupling python-jose Exceptions**
+> Should we raise custom exception classes (e.g., `TokenExpiredError`, `TokenInvalidError`) from the `JWTService` to abstract away the underlying `jose` library?
+>
+> *Recommendation*: Yes, defining custom exceptions makes the service easier to use and mock without other components needing to import or catch exceptions from `python-jose`.
+
+> [!NOTE]
+> **Q2: Adding Pytest Dependency**
+> There are currently no test suites or testing libraries set up in the backend. We propose adding `pytest>=8.0.0` as a development/testing dependency to run verification tests.
+
+---
+
+## Proposed Changes
+
+### Dependencies & Setup
+
+#### [MODIFY] [requirements.txt](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/requirements.txt)
+* Ensure explicit dependency on `bcrypt>=4.0.0` to avoid potential passlib dependency issues.
+* Add `pytest>=8.0.0` (or add `pytest` to a separate `requirements-dev.txt` file).
+
+---
+
+### Core Security Services
+
+#### [NEW] [password_service.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/app/services/password_service.py)
+* **Goal**: Provide a completely stateless password hashing utility class.
+* **Technique**: Use standard `bcrypt` directly (no `passlib` overhead).
+* **Interface**:
+  ```python
+  class PasswordService:
+      @staticmethod
+      def hash_password(password: str) -> str:
+          """Hash a plaintext password using bcrypt."""
+          ...
+
+      @staticmethod
+      def verify_password(password: str, hashed_password: str) -> bool:
+          """Verify a plaintext password against a bcrypt hash."""
+          ...
+  ```
+* **No database/FastAPI dependencies**.
+
+#### [NEW] [jwt_service.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/app/services/jwt_service.py)
+* **Goal**: Manage creation, signature verification, and decoding of JSON Web Tokens.
+* **Technique**: Use `python-jose` to encode/decode, reading configuration from `app.config.settings`.
+* **Interface**:
+  ```python
+  from app.config.settings import settings
+
+  class JWTServiceError(Exception):
+      """Base exception for JWT service operations."""
+      pass
+
+  class TokenExpiredError(JWTServiceError):
+      """Raised when the token has expired."""
+      pass
+
+  class TokenInvalidError(JWTServiceError):
+      """Raised when the token signature or claims are invalid/malformed."""
+      pass
+
+  class JWTService:
+      SECRET_KEY = settings.SECRET_KEY
+      ALGORITHM = settings.ALGORITHM
+      EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES  # Defaults to 60
+
+      @classmethod
+      def create_access_token(cls, subject: str) -> str:
+          """Create a JWT access token for a subject.
+          
+          The payload must only contain:
+          - 'sub': subject (str)
+          - 'exp': expiration time (datetime in UTC)
+          """
+          ...
+
+      @classmethod
+      def verify_access_token(cls, token: str) -> dict:
+          """Verify the signature and expiration of a JWT token.
+          
+          Raises TokenExpiredError if expired.
+          Raises TokenInvalidError if invalid or malformed.
+          Returns the decoded payload.
+          """
+          ...
+
+      @classmethod
+      def decode_access_token(cls, token: str) -> dict:
+          """Decode a JWT token without verifying its expiration.
+          
+          Useful for inspecting claims of expired/invalid tokens.
+          Raises TokenInvalidError if the signature or structure is invalid.
+          Returns the decoded payload.
+          """
+          ...
+  ```
+
+---
+
+### Test Suite
+
+#### [NEW] [test_password_service.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/tests/test_password_service.py)
+* Contains unit tests validating:
+  * Successful hashing and verification of matching passwords.
+  * Rejection of incorrect passwords.
+  * Rejection of empty passwords or malformed hashes (handling potential exceptions cleanly).
+
+#### [NEW] [test_jwt_service.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/tests/test_jwt_service.py)
+* Contains unit tests validating:
+  * Proper token creation containing only `sub` and `exp`.
+  * Valid token verification returns correct payload.
+  * Expired tokens raise `TokenExpiredError`.
+  * Malformed/corrupted tokens raise `TokenInvalidError`.
+  * Decoupled decoding of expired tokens using `decode_access_token`.
+
+---
+
+## Acceptance Criteria
+
+1. **Decoupled**: Neither `PasswordService` nor `JWTService` references SQLAlchemy models or executes database queries.
+2. **Stateless**: The classes contain only class/static methods and rely strictly on arguments and loaded configuration.
+3. **Correct Payload**: Access token payloads generated contain exclusively `sub` and `exp` claims.
+4. **Timezone Safety**: Expiration timestamps are computed using UTC and timezone-aware datetimes (`datetime.now(timezone.utc)`) to ensure compliance with Python 3.12+.
+5. **Exceptions Handled**: Malformed, expired, and invalid signature JWTs are caught and raise distinct, readable exceptions.
+6. **No Auth Routes**: No routes, endpoints, or DB authorization logic are modified/implemented in this phase.
+
+---
+
+## Verification Plan
+
+### Automated Tests
+* Set up a virtual environment and run backend tests using pytest:
+  ```bash
+  pytest backend/tests/
+  ```
+
+### Manual Verification
+* Execute a scratch script to verify:
+  1. Hashing speed and validity.
+  2. Generating a JWT and decoding it manually to verify the payload keys:
+     ```python
+     # Expected structure:
+     # {"sub": "user@example.com", "exp": 1719575900}
+     ```
+
+---
+
+## Potential Implementation Risks
+
+1. **Python 3.12+ `datetime.utcnow()` Deprecation**:
+   Using `datetime.utcnow()` triggers warnings or issues on Python 3.12+.
+   *Mitigation*: We will use `datetime.now(timezone.utc)` and ensure the UTC timestamp is correctly parsed.
+2. **Cryptographic Signatures**:
+   If the `SECRET_KEY` is not loaded properly from the configuration, token verification will fail.
+   *Mitigation*: Provide default fallback values in `Settings` and validate key presence in `JWTService` initialization.
+3. **Passlib Dependency Issues**:
+   `passlib` is currently unmaintained and has known compatibility issues with bcrypt 4.0+.
+   *Mitigation*: Direct usage of the native `bcrypt` package avoids using `passlib` entirely for the new `PasswordService`.

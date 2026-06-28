@@ -1,0 +1,91 @@
+# Sprint 3.1 – Phase 2 & 3: Walkthrough
+
+This document outlines the implementation, test structure, and validation results for Sprint 3.1, covering the Security Layer (Phase 2) and Authentication Business Logic (Phase 3) for the AlgoPath application.
+
+---
+
+## What Was Implemented
+
+### 1. Dependencies
+
+* **[requirements.txt](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/requirements.txt)**: Added `bcrypt>=4.0.0` to secure production-ready password hashing.
+* **[requirements-dev.txt](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/requirements-dev.txt)**: Created development dependencies file with `pytest>=8.0.0` for clean and isolated unit tests.
+
+### 2. Centralized Dependencies
+
+* **[dependencies.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/app/dependencies.py)**:
+  * Centralized FastAPI dependency injection helpers `get_current_user` and `get_admin_user`.
+  * Keeps the core service layer (`AuthService`, `JWTService`, `PasswordService`) 100% decoupled and free of FastAPI framework code (`Depends`, `HTTPException`, etc.).
+
+### 3. Core Security Services
+
+* **[password_service.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/app/services/password_service.py)**:
+  * Stateless `PasswordService` with `hash_password(password)` and `verify_password(password, hashed_password)`.
+  * Bypasses the deprecated `passlib` to interact directly with the modern `bcrypt` library.
+* **[jwt_service.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/app/services/jwt_service.py)**:
+  * Uses `python-jose` to manage JWT creation, verification, and decoding.
+  * Encapsulates JWT errors into custom domains: `TokenExpiredError` and `TokenInvalidError`.
+  * Restricts payloads strictly to `sub` and `exp`.
+
+### 4. Authentication Business Logic
+
+* **[auth_service.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/app/services/auth_service.py)**:
+  * Completely refactored as a stateless orchestration layer.
+  * Defines domain exceptions: `AuthenticationError`, `UserAlreadyExistsError`, `InvalidCredentialsError`, and `UserNotFoundError`.
+  * Implemented a private `_normalize_email(email)` method to ensure uniform casing and spacing of emails.
+  * `register_user(db, register_data) -> UserResponse`: Validates unique email, hashes password, creates user in DB, initializes progress records, and returns the sanitized Pydantic DTO. Safely rolls back the transaction (deleting the user) if progress initialization fails.
+  * `login_user(db, login_data) -> TokenResponse`: Authenticates matching records and issues JWT. Uses identical `InvalidCredentialsError` details for both non-existent users and wrong passwords to block user enumeration.
+  * `get_user_by_email(db, email) -> User` & `get_user_by_id(db, user_id) -> User`: Direct lookups that return the raw ORM `User` models for internal orchestration (satisfying user refinement requirements).
+
+### 5. API Route Adjustments
+
+* **[curriculum.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/app/routes/curriculum.py)**:
+  * Refactored imports to reference `app.dependencies` for `get_current_user` instead of `app.services.auth_service`, adapting all routes seamlessly.
+
+---
+
+## Verification & Test Suite
+
+We designed unit tests validating all core capabilities using isolated mock states and database instances.
+
+### Test Files Added
+
+1. **[conftest.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/tests/conftest.py)**:
+   * Sets up an in-memory SQLite database session (`db_session`) using `sqlite:///:memory:` to isolate test data.
+   * Seeds mock topics/domains (`seeded_topics`) to test topic progress unlocking during user registration.
+2. **[test_password_service.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/tests/test_password_service.py)**:
+   * Hashing logic checks, valid password verification, and validation of malformed inputs.
+3. **[test_jwt_service.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/tests/test_jwt_service.py)**:
+   * Expiration checks (verifies `TokenExpiredError`), tampered signature checks, and validation of the payload format.
+4. **[test_auth_service.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/tests/test_auth_service.py)**:
+   * **Registration**: Checks success, email normalization, progress initialization, duplicate email blocking, and repository commit/rollback operations.
+   * **Login**: Validates access token issuance, generic authentication error matching for invalid credentials (prevents enumeration).
+   * **Lookups**: Checks query matches and raises `UserNotFoundError`.
+
+---
+
+## Validation Results
+
+The unit tests were executed within the virtual environment using pytest:
+
+```bash
+.\venv\Scripts\python -m pytest tests
+```
+
+### Pytest Execution Output
+
+```text
+============================= test session starts =============================
+platform win32 -- Python 3.13.7, pytest-9.1.1, pluggy-1.6.0
+rootdir: D:\Projects\Antigravity\project 1\project 1.1\backend
+plugins: anyio-4.14.1
+collected 17 items
+
+tests\test_auth_service.py .......                                       [ 41%]
+tests\test_jwt_service.py ......                                         [ 76%]
+tests\test_password_service.py ....                                      [100%]
+
+============================= 17 passed in 3.68s ==============================
+```
+
+All **17 tests passed cleanly**.
