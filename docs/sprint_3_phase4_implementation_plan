@@ -1,0 +1,107 @@
+# Sprint 3.1 – Phase 4: Authentication API Implementation Plan
+
+This implementation plan covers the delivery of the HTTP API routes exposing the user authentication services (`AuthService`, `JWTService`, `PasswordService`). The routes will be registered under `backend/app/routes/auth.py`.
+
+---
+
+## Architecture Notes
+
+* **Thin Routes**: Routers will only validate JSON payloads (automatically via Pydantic schemas), invoke stateless services, catch custom service layer exceptions, and return serialized Pydantic responses.
+* **Separation of Concerns**: Cryptography (bcrypt), token operations (jose), and database transaction management remain isolated inside the service layer.
+* **API Documentation**: The endpoints will be fully decorated with descriptions, response classes, and explicit error status code schemas to ensure FastAPI's Swagger UI (`/docs`) accurately represents all possible outputs.
+
+---
+
+## Exception Mapping Strategy
+
+We will map service-layer exceptions to FastAPI `HTTPException` responses as follows:
+
+| Service-Layer Exception | HTTP Status Code | Response Detail / Message |
+| :--- | :--- | :--- |
+| `UserAlreadyExistsError` | `409 Conflict` | `"A user with this email address already exists"` |
+| `InvalidCredentialsError` | `401 Unauthorized` | `"Invalid email or password"` |
+| `UserNotFoundError` | `404 Not Found` | `"User not found"` |
+| `TokenExpiredError` | `401 Unauthorized` | `"Could not validate credentials"` (via `get_current_user`) |
+| `TokenInvalidError` | `401 Unauthorized` | `"Could not validate credentials"` (via `get_current_user`) |
+| `Exception` (unhandled database/infra error) | `500 Internal Server Error` | `"An internal server error occurred"` |
+
+---
+
+## Proposed Changes
+
+### Dependencies & Setup
+
+#### [MODIFY] [requirements-dev.txt](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/requirements-dev.txt)
+* Add `httpx>=0.27.0` (required by FastAPI `TestClient` for handling async requests during testing).
+
+---
+
+### Route Implementation
+
+#### [MODIFY] [auth.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/app/routes/auth.py)
+* Register the following path operations:
+  * `POST /api/auth/register`: Takes `RegisterRequest`, returns `UserResponse`, maps duplicate errors to `409`, outputs `201 Created` status code.
+  * `POST /api/auth/login`: Takes `LoginRequest`, returns `TokenResponse`, maps credentials errors to `401`, outputs `200 OK`.
+  * `GET /api/auth/me`: Protected by `Depends(get_current_user)`. Returns `UserResponse` DTO for the currently active session.
+
+---
+
+### Test Suite
+
+#### [NEW] [test_auth_routes.py](file:///d:/Projects/Antigravity/project%201/project%201.1/backend/tests/test_auth_routes.py)
+* **Goal**: Validate the endpoints via FastAPI's `TestClient`.
+* **Fixtures**:
+  * Override the database session dependency:
+    ```python
+    @pytest.fixture(name="client")
+    def client_fixture(db_session):
+        from app.main import app
+        from app.database import get_db
+        # Override get_db to return the in-memory test database session
+        app.dependency_overrides[get_db] = lambda: db_session
+        from fastapi.testclient import TestClient
+        yield TestClient(app)
+        app.dependency_overrides.clear()
+    ```
+* **Endpoints Tests**:
+  * **Registration API**:
+    * Success (201 status, checks response payload fields, asserts database contains user).
+    * Duplicate Email (409 Conflict, correct error string).
+    * Schema Validation (422 Unprocessable Entity for invalid emails or short passwords).
+  * **Login API**:
+    * Success (200 status, returns access token).
+    * Wrong credentials (401 Unauthorized for incorrect passwords or non-existent emails).
+  * **Me API (`/me`)**:
+    * Access with valid Bearer Token (200 status, returns correct user details).
+    * Access with missing authorization header (401 Unauthorized).
+    * Access with invalid/malformed token (401 Unauthorized).
+    * Access with expired token (401 Unauthorized).
+
+---
+
+## Acceptance Criteria
+
+1. **Thin Controller Design**: No cryptography, database calls, or transaction commits/rollbacks are executed directly in `auth.py`.
+2. **Robust Status Codes**: Response statuses align with standard REST principles (e.g. `201` for registration creation, `409` for duplicate resources, `401` for unauthorized token / logins).
+3. **Swagger Integration**: Documented endpoints correctly display request and response schemas, authorization status requirements, and custom error formats.
+4. **Passes All Tests**: All new route unit tests along with existing tests must execute successfully.
+
+---
+
+## Testing Checklist
+
+- [ ] **Test Execution**: Run `.\venv\Scripts\python -m pytest tests/`
+- [ ] **Swagger Documentation**: Verify endpoint layouts and token headers on `/docs` visually (if web browser access is available, or via schema validation).
+
+---
+
+## Potential Implementation Risks & Migration Impact
+
+1. **Dependency Overrides Leakage**:
+   If dependency overrides on the `app` instance are not cleared properly after each test, subsequent tests might leak test database sessions.
+   *Mitigation*: Use a context-managed cleanup step (`app.dependency_overrides.clear()`) in the fixture teardown.
+2. **CORS Configuration**:
+   Registering routes does not modify CORS settings, but requests from frontend clients must successfully authenticate via Bearer token structures.
+   *Mitigation*: We ensure standard `Bearer` prefixing is supported by our OAuth2 security schema configuration.
+3. **Migration Impact**:
+   Zero migration impact. Since there are no existing authentication endpoints registered, this represents an addition of new route endpoints without breaking existing functionality.

@@ -1,13 +1,18 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 from app.database import Base
 from app.models import Domain, Topic
 
 @pytest.fixture(name="db_session")
 def db_session_fixture():
     """Fixture that initializes an in-memory SQLite database, creates all schemas, and yields a session."""
-    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+    engine = create_engine(
+        "sqlite:///:memory:", 
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool
+    )
     
     # Ensure all tables are registered on metadata
     import app.models  # noqa: F401
